@@ -29,17 +29,6 @@ def  funCodeCheckout()
    archiveArtifacts allowEmptyArchive: true, artifacts: 'checkout.log', excludes: null
 }
 
-def  funCodeBuild()
-{
- def WORKSPACE = pwd()
- echo  "\u2600 **********Build started for Visual Studio Project******************"
- dir(PROJECT_PATH){
- bat '"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\Bin\\MSBuild.exe" Build.proj > build.log || true' 
- bat 'type build.log'
- archiveArtifacts allowEmptyArchive: true, artifacts: 'build.log', excludes: null
- }
-}
-
 /********************************************************
 *****             Main pipeline stages              *****
 *********************************************************/
@@ -48,7 +37,7 @@ node('docker-slave') {
     properties([[$class: 'ScannerJobProperty', doNotScan: false], pipelineTriggers([pollSCM('* * * * *')])])
     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'amsurgjenkins', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']])
   {
-  wsDir = "workspace/Multibranch.pipeline_${GIT_BRANCH}"
+  wsDir = "workspace/Multibranch.pipeline"
    ws (wsDir) {
    def JAVA_HOME = tool 'JRE1.8-windows'
    env.JAVA_HOME = "$JAVA_HOME"
@@ -56,8 +45,6 @@ node('docker-slave') {
    try {
    stage '\u2780 Code Checkout from GIT' 
    funCodeCheckout()
-   stage '\u2781 Code Build for Visual Studio Project' 
-   funCodeBuild()
    currentBuild.result = 'SUCCESS'
    }
    catch (any) {
